@@ -17,6 +17,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-loyalty-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-loyalty-points.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-loyalty-rewards.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-loyalty-frontend.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-loyalty-ajax.php';
 
 // Initialiser les classes principales
 function loyalty_program_init() {
@@ -25,6 +26,7 @@ function loyalty_program_init() {
         new Loyalty_Points();
         new Loyalty_Rewards();
         new Loyalty_Frontend();
+        new Loyalty_Ajax();
     } else {
         add_action('admin_notices', function() {
             echo '<div class="error"><p>Loyalty Program for WooCommerce nécessite WooCommerce pour fonctionner.</p></div>';
@@ -44,3 +46,26 @@ function loyalty_program_activate() {
 function loyalty_program_deactivate() {
     // Code à exécuter lors de la désactivation
 }
+
+// Charger les scripts et styles
+function loyalty_program_enqueue_scripts() {
+    // Enregistrer le script JavaScript
+    wp_enqueue_script(
+        'loyalty-program-inject-script', // Handle unique
+        plugin_dir_url(__FILE__) . 'assets/js/inject-script.js', // URL du fichier JS
+        array('jquery'), // Dépendances
+        '1.0.0', // Version
+        true // Charger dans le footer
+    );
+
+    // Localiser le script pour passer des variables PHP à JavaScript
+    wp_localize_script(
+        'loyalty-program-inject-script', // Handle du script
+        'loyaltyProgramAjax', // Nom de l'objet JavaScript
+        array(
+            'ajax_url' => admin_url('admin-ajax.php'), // URL pour les requêtes AJAX
+            'nonce' => wp_create_nonce('loyalty_program_nonce'), // Nonce pour la sécurité
+        )
+    );
+}
+add_action('wp_enqueue_scripts', 'loyalty_program_enqueue_scripts');

@@ -77,4 +77,7 @@ class Loyalty_Points {
     private function update_user_points($user_id, $points) {
         $current_points = get_user_meta($user_id, 'loyalty_points', true);
         $current_points = $current_points ? (float) $current_points : 0;
-        $new
+        $new_points = $current_points + $points;
+        update_user_meta($user_id, 'loyalty_points', $new_points);
+    }
+}

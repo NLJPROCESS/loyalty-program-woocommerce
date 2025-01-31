@@ -42,7 +42,7 @@ class Loyalty_Admin {
 
     // Enregistrer les paramètres
     public function register_settings() {
-        // Section principale
+        // Section principale pour les points
         add_settings_section(
             'loyalty_program_main_section',
             'Configuration des points',
@@ -79,6 +79,23 @@ class Loyalty_Admin {
             'loyalty_program_main_section'
         );
         register_setting('loyalty_program_options_group', 'loyalty_order_status', 'sanitize_text_field');
+
+        // Section pour les récompenses
+        add_settings_section(
+            'loyalty_rewards_section',
+            'Gestion des récompenses',
+            null,
+            'loyalty-program'
+        );
+
+        // Champ pour ajouter une récompense
+        add_settings_field(
+            'loyalty_rewards',
+            'Récompenses',
+            array($this, 'rewards_callback'),
+            'loyalty-program',
+            'loyalty_rewards_section'
+        );
     }
 
     // Callback pour le ratio de points
@@ -102,5 +119,36 @@ class Loyalty_Admin {
             echo '<option value="' . esc_attr($key) . '" ' . selected($status, $key, false) . '>' . esc_html($label) . '</option>';
         }
         echo '</select>';
+    }
+
+    // Callback pour afficher la liste des récompenses
+    public function rewards_callback() {
+        $rewards = get_posts(array(
+            'post_type' => 'loyalty_reward',
+            'numberposts' => -1,
+        ));
+
+        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<thead><tr><th>Nom</th><th>Type</th><th>Valeur</th><th>Points requis</th><th>Montant minimum</th><th>Actions</th></tr></thead>';
+        echo '<tbody>';
+
+        foreach ($rewards as $reward) {
+            $reward_type = get_post_meta($reward->ID, '_reward_type', true);
+            $reward_value = get_post_meta($reward->ID, '_reward_value', true);
+            $points_required = get_post_meta($reward->ID, '_points_required', true);
+            $min_amount = get_post_meta($reward->ID, '_min_amount', true);
+
+            echo '<tr>';
+            echo '<td>' . esc_html($reward->post_title) . '</td>';
+            echo '<td>' . esc_html($reward_type) . '</td>';
+            echo '<td>' . esc_html($reward_value) . '</td>';
+            echo '<td>' . esc_html($points_required) . '</td>';
+            echo '<td>' . esc_html($min_amount) . '</td>';
+            echo '<td><a href="#" class="button">Modifier</a> <a href="#" class="button">Supprimer</a></td>';
+            echo '</tr>';
+        }
+
+        echo '</tbody></table>';
+        echo '<a href="#" class="button">Ajouter une récompense</a>';
     }
 }
