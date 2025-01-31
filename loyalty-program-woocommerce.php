@@ -48,24 +48,26 @@ function loyalty_program_deactivate() {
 }
 
 // Charger les scripts et styles
-function loyalty_program_enqueue_scripts() {
-    // Enregistrer le script JavaScript
-    wp_enqueue_script(
-        'loyalty-program-inject-script', // Handle unique
-        plugin_dir_url(__FILE__) . 'assets/js/inject-script.js', // URL du fichier JS
-        array('jquery'), // Dépendances
-        '1.0.0', // Version
-        true // Charger dans le footer
-    );
+function loyalty_program_enqueue_scripts($hook) {
+    // Charger le script uniquement sur la page d'administration de l'extension
+    if ($hook === 'toplevel_page_loyalty-program') {
+        wp_enqueue_script(
+            'loyalty-program-inject-script', // Handle unique
+            plugin_dir_url(__FILE__) . 'assets/js/inject-script.js', // URL du fichier JS
+            array('jquery'), // Dépendances
+            '1.0.0', // Version
+            true // Charger dans le footer
+        );
 
-    // Localiser le script pour passer des variables PHP à JavaScript
-    wp_localize_script(
-        'loyalty-program-inject-script', // Handle du script
-        'loyaltyProgramAjax', // Nom de l'objet JavaScript
-        array(
-            'ajax_url' => admin_url('admin-ajax.php'), // URL pour les requêtes AJAX
-            'nonce' => wp_create_nonce('loyalty_program_nonce'), // Nonce pour la sécurité
-        )
-    );
+        // Localiser le script pour passer des variables PHP à JavaScript
+        wp_localize_script(
+            'loyalty-program-inject-script', // Handle du script
+            'loyaltyProgramAjax', // Nom de l'objet JavaScript
+            array(
+                'ajax_url' => admin_url('admin-ajax.php'), // URL pour les requêtes AJAX
+                'nonce' => wp_create_nonce('loyalty_program_nonce'), // Nonce pour la sécurité
+            )
+        );
+    }
 }
-add_action('wp_enqueue_scripts', 'loyalty_program_enqueue_scripts');
+add_action('admin_enqueue_scripts', 'loyalty_program_enqueue_scripts');

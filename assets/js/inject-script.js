@@ -1,17 +1,12 @@
 (function () {
     'use strict';
 
-    // Créer un point d'entrée pour le script
-    const loyaltyForegroundEntryPoint = document.createElement('div');
-    loyaltyForegroundEntryPoint.id = 'loyalty-foreground-entry-point';
-    document.body.appendChild(loyaltyForegroundEntryPoint);
-
     // Fonction pour gérer l'ajout de récompenses
     function handleAddReward() {
-        const addRewardButton = document.querySelector('.loyalty-add-reward-button');
-        if (addRewardButton) {
-            addRewardButton.addEventListener('click', function (event) {
-                event.preventDefault();
+        const addRewardForm = document.getElementById('loyalty-add-reward-form');
+        if (addRewardForm) {
+            addRewardForm.addEventListener('submit', function (event) {
+                event.preventDefault(); // Empêcher le rechargement de la page
 
                 // Récupérer les données du formulaire
                 const rewardName = document.getElementById('loyalty-reward-name').value;
@@ -58,6 +53,8 @@
                         alert('Une erreur s\'est produite. Veuillez réessayer.');
                     });
             });
+        } else {
+            console.error('Formulaire "Ajouter une récompense" introuvable.');
         }
     }
 

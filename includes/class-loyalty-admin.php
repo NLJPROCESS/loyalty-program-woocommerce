@@ -29,6 +29,9 @@ class Loyalty_Admin {
         ?>
         <div class="wrap">
             <h1>Loyalty Program Settings</h1>
+
+            <!-- Formulaire pour configurer les points -->
+            <h2>Configuration des points</h2>
             <form method="post" action="options.php">
                 <?php
                 settings_fields('loyalty_program_options_group');
@@ -36,6 +39,47 @@ class Loyalty_Admin {
                 submit_button();
                 ?>
             </form>
+
+            <!-- Formulaire pour ajouter une récompense -->
+            <h2>Ajouter une récompense</h2>
+            <form id="loyalty-add-reward-form">
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="loyalty-reward-name">Nom de la récompense</label></th>
+                        <td><input type="text" id="loyalty-reward-name" class="regular-text" required></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="loyalty-reward-type">Type de récompense</label></th>
+                        <td>
+                            <select id="loyalty-reward-type" required>
+                                <option value="percentage">Pourcentage</option>
+                                <option value="fixed">Montant fixe</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="loyalty-reward-value">Valeur</label></th>
+                        <td><input type="number" id="loyalty-reward-value" class="regular-text" required></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="loyalty-points-required">Points requis</label></th>
+                        <td><input type="number" id="loyalty-points-required" class="regular-text" required></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="loyalty-min-amount">Montant minimum</label></th>
+                        <td><input type="number" id="loyalty-min-amount" class="regular-text" required></td>
+                    </tr>
+                </table>
+                <p class="submit">
+                    <button type="submit" class="button button-primary loyalty-add-reward-button">Ajouter une récompense</button>
+                </p>
+            </form>
+
+            <!-- Affichage des récompenses existantes -->
+            <h2>Récompenses existantes</h2>
+            <div id="loyalty-rewards-list">
+                <?php $this->display_rewards_list(); ?>
+            </div>
         </div>
         <?php
     }
@@ -79,23 +123,6 @@ class Loyalty_Admin {
             'loyalty_program_main_section'
         );
         register_setting('loyalty_program_options_group', 'loyalty_order_status', 'sanitize_text_field');
-
-        // Section pour les récompenses
-        add_settings_section(
-            'loyalty_rewards_section',
-            'Gestion des récompenses',
-            null,
-            'loyalty-program'
-        );
-
-        // Champ pour ajouter une récompense
-        add_settings_field(
-            'loyalty_rewards',
-            'Récompenses',
-            array($this, 'rewards_callback'),
-            'loyalty-program',
-            'loyalty_rewards_section'
-        );
     }
 
     // Callback pour le ratio de points
@@ -121,34 +148,37 @@ class Loyalty_Admin {
         echo '</select>';
     }
 
-    // Callback pour afficher la liste des récompenses
-    public function rewards_callback() {
+    // Afficher la liste des récompenses existantes
+    public function display_rewards_list() {
         $rewards = get_posts(array(
             'post_type' => 'loyalty_reward',
             'numberposts' => -1,
         ));
 
-        echo '<table class="wp-list-table widefat fixed striped">';
-        echo '<thead><tr><th>Nom</th><th>Type</th><th>Valeur</th><th>Points requis</th><th>Montant minimum</th><th>Actions</th></tr></thead>';
-        echo '<tbody>';
+        if (empty($rewards)) {
+            echo '<p>Aucune récompense disponible pour le moment.</p>';
+        } else {
+            echo '<table class="wp-list-table widefat fixed striped">';
+            echo '<thead><tr><th>Nom</th><th>Type</th><th>Valeur</th><th>Points requis</th><th>Montant minimum</th><th>Actions</th></tr></thead>';
+            echo '<tbody>';
 
-        foreach ($rewards as $reward) {
-            $reward_type = get_post_meta($reward->ID, '_reward_type', true);
-            $reward_value = get_post_meta($reward->ID, '_reward_value', true);
-            $points_required = get_post_meta($reward->ID, '_points_required', true);
-            $min_amount = get_post_meta($reward->ID, '_min_amount', true);
+            foreach ($rewards as $reward) {
+                $reward_type = get_post_meta($reward->ID, '_reward_type', true);
+                $reward_value = get_post_meta($reward->ID, '_reward_value', true);
+                $points_required = get_post_meta($reward->ID, '_points_required', true);
+                $min_amount = get_post_meta($reward->ID, '_min_amount', true);
 
-            echo '<tr>';
-            echo '<td>' . esc_html($reward->post_title) . '</td>';
-            echo '<td>' . esc_html($reward_type) . '</td>';
-            echo '<td>' . esc_html($reward_value) . '</td>';
-            echo '<td>' . esc_html($points_required) . '</td>';
-            echo '<td>' . esc_html($min_amount) . '</td>';
-            echo '<td><a href="#" class="button">Modifier</a> <a href="#" class="button">Supprimer</a></td>';
-            echo '</tr>';
+                echo '<tr>';
+                echo '<td>' . esc_html($reward->post_title) . '</td>';
+                echo '<td>' . esc_html($reward_type) . '</td>';
+                echo '<td>' . esc_html($reward_value) . '</td>';
+                echo '<td>' . esc_html($points_required) . '</td>';
+                echo '<td>' . esc_html($min_amount) . '</td>';
+                echo '<td><a href="#" class="button">Modifier</a> <a href="#" class="button">Supprimer</a></td>';
+                echo '</tr>';
+            }
+
+            echo '</tbody></table>';
         }
-
-        echo '</tbody></table>';
-        echo '<a href="#" class="button">Ajouter une récompense</a>';
     }
 }

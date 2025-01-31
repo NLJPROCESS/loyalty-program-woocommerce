@@ -73,11 +73,38 @@ class Loyalty_Points {
         $this->update_user_points($user_id, -$points);
     }
 
-    // Mettre à jour les points de l'utilisateur
-    private function update_user_points($user_id, $points) {
+
+    private function update_user_points($user_id, $points, $action = 'add', $order_id = null) {
         $current_points = get_user_meta($user_id, 'loyalty_points', true);
         $current_points = $current_points ? (float) $current_points : 0;
         $new_points = $current_points + $points;
+
+        // Mettre à jour les points
         update_user_meta($user_id, 'loyalty_points', $new_points);
+
+        // Enregistrer l'historique des points
+        $history = get_user_meta($user_id, 'loyalty_points_history', true);
+        $history = $history ? $history : array();
+
+        $history[] = array(
+            'date' => current_time('mysql'),
+            'points' => $points,
+            'action' => $action, // 'add' ou 'remove'
+            'order_id' => $order_id, // ID de la commande associée (si applicable)
+        );
+
+        update_user_meta($user_id, 'loyalty_points_history', $history);
+    }
+
+    private function send_email_notification($user_id, $subject, $message) {
+        $user = get_userdata($user_id);
+        if (!$user) {
+            return;
+        }
+
+        $to = $user->user_email;
+        $headers = array('Content-Type: text/html; charset=UTF-8');
+
+        wp_mail($to, $subject, $message, $headers);
     }
 }
